@@ -3,13 +3,19 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: Task Manager SaaS API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: projects
+    description: Project operations
+  - name: tasks
+    description: Task operations
+  - name: dashboard
+    description: Dashboard and summary operations
 paths:
   /healthz:
     get:
@@ -24,6 +30,303 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /projects:
+    get:
+      operationId: listProjects
+      tags: [projects]
+      summary: List all projects for the authenticated user
+      responses:
+        "200":
+          description: List of projects
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Project"
+    post:
+      operationId: createProject
+      tags: [projects]
+      summary: Create a new project
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateProjectBody"
+      responses:
+        "201":
+          description: Created project
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Project"
+        "400":
+          description: Invalid input
+
+  /projects/{id}:
+    get:
+      operationId: getProject
+      tags: [projects]
+      summary: Get a project by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Project
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Project"
+        "404":
+          description: Not found
+    patch:
+      operationId: updateProject
+      tags: [projects]
+      summary: Update a project
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateProjectBody"
+      responses:
+        "200":
+          description: Updated project
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Project"
+        "404":
+          description: Not found
+    delete:
+      operationId: deleteProject
+      tags: [projects]
+      summary: Delete a project
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Not found
+
+  /projects/{id}/tasks:
+    get:
+      operationId: listProjectTasks
+      tags: [tasks]
+      summary: List tasks for a project
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [todo, in_progress, done]
+        - name: priority
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [low, medium, high]
+      responses:
+        "200":
+          description: List of tasks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Task"
+
+  /tasks:
+    get:
+      operationId: listTasks
+      tags: [tasks]
+      summary: List all tasks for the authenticated user
+      parameters:
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [todo, in_progress, done]
+        - name: priority
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [low, medium, high]
+        - name: projectId
+          in: query
+          required: false
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of tasks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Task"
+    post:
+      operationId: createTask
+      tags: [tasks]
+      summary: Create a new task
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTaskBody"
+      responses:
+        "201":
+          description: Created task
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+        "400":
+          description: Invalid input
+
+  /tasks/{id}:
+    get:
+      operationId: getTask
+      tags: [tasks]
+      summary: Get a task by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Task
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+        "404":
+          description: Not found
+    patch:
+      operationId: updateTask
+      tags: [tasks]
+      summary: Update a task
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateTaskBody"
+      responses:
+        "200":
+          description: Updated task
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+        "404":
+          description: Not found
+    delete:
+      operationId: deleteTask
+      tags: [tasks]
+      summary: Delete a task
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Not found
+
+  /tasks/{id}/status:
+    patch:
+      operationId: updateTaskStatus
+      tags: [tasks]
+      summary: Update task status (quick toggle)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateTaskStatusBody"
+      responses:
+        "200":
+          description: Updated task
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+        "404":
+          description: Not found
+
+  /dashboard/summary:
+    get:
+      operationId: getDashboardSummary
+      tags: [dashboard]
+      summary: Get dashboard summary stats for the authenticated user
+      responses:
+        "200":
+          description: Dashboard summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardSummary"
+
+  /dashboard/activity:
+    get:
+      operationId: getRecentActivity
+      tags: [dashboard]
+      summary: Get recent task activity
+      responses:
+        "200":
+          description: Recent activity
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ActivityItem"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +337,202 @@ components:
       required:
         - status
 
+    Project:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: string
+        name:
+          type: string
+        description:
+          type: ["string", "null"]
+        color:
+          type: string
+        taskCount:
+          type: integer
+        completedCount:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - userId
+        - name
+        - color
+        - taskCount
+        - completedCount
+        - createdAt
+        - updatedAt
+
+    CreateProjectBody:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: ["string", "null"]
+        color:
+          type: string
+      required:
+        - name
+        - color
+
+    UpdateProjectBody:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: ["string", "null"]
+        color:
+          type: string
+
+    Task:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: string
+        projectId:
+          type: ["integer", "null"]
+        projectName:
+          type: ["string", "null"]
+        projectColor:
+          type: ["string", "null"]
+        title:
+          type: string
+        description:
+          type: ["string", "null"]
+        status:
+          type: string
+          enum: [todo, in_progress, done]
+        priority:
+          type: string
+          enum: [low, medium, high]
+        dueDate:
+          type: ["string", "null"]
+          format: date
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - userId
+        - title
+        - status
+        - priority
+        - createdAt
+        - updatedAt
+
+    CreateTaskBody:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: ["string", "null"]
+        projectId:
+          type: ["integer", "null"]
+        status:
+          type: string
+          enum: [todo, in_progress, done]
+        priority:
+          type: string
+          enum: [low, medium, high]
+        dueDate:
+          type: ["string", "null"]
+          format: date
+      required:
+        - title
+
+    UpdateTaskBody:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: ["string", "null"]
+        projectId:
+          type: ["integer", "null"]
+        status:
+          type: string
+          enum: [todo, in_progress, done]
+        priority:
+          type: string
+          enum: [low, medium, high]
+        dueDate:
+          type: ["string", "null"]
+          format: date
+
+    UpdateTaskStatusBody:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [todo, in_progress, done]
+      required:
+        - status
+
+    DashboardSummary:
+      type: object
+      properties:
+        totalTasks:
+          type: integer
+        todoCount:
+          type: integer
+        inProgressCount:
+          type: integer
+        doneCount:
+          type: integer
+        totalProjects:
+          type: integer
+        highPriorityCount:
+          type: integer
+        dueSoonCount:
+          type: integer
+        completionRate:
+          type: number
+      required:
+        - totalTasks
+        - todoCount
+        - inProgressCount
+        - doneCount
+        - totalProjects
+        - highPriorityCount
+        - dueSoonCount
+        - completionRate
+
+    ActivityItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        taskId:
+          type: integer
+        taskTitle:
+          type: string
+        action:
+          type: string
+        projectName:
+          type: ["string", "null"]
+        projectColor:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - taskId
+        - taskTitle
+        - action
+        - createdAt
